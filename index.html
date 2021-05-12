@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+
+    html {
+        overflow-x: hidden;
+    }
+
+    #compare {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        justify-content: center;
+        align-items: center;
+        width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #compare h1 {
+        margin: 0 auto;
+        font-family: 'Arial', sans-serif;
+        text-transform: uppercase;
+        color: darkslateblue;
+    }
+
+    #compare img {
+        display: block;
+        margin: 0 auto;
+        height: 100px;
+        width: 100px;
+    }
+
+    #compare img.checked {
+        filter: grayscale(1);
+    }
+
+    .result {
+        position: relative;
+    }
+
+    .result .btn {
+        display: block;
+        margin: 2rem auto;
+        padding: 1.5rem 0.85rem;
+        background-color: darkslateblue;
+        color: white;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+
+    .result textarea {
+        position: relative;
+        display: block;
+        min-height: 300px;
+        width: 80%;
+        margin: 0 auto;
+    }
+
+    .result .copy {
+        position: absolute;
+        top: 150px;
+        right: 150px;
+        z-index: 5;
+        background-color: blueviolet;
+        border: none;
+        color: white;
+        font-size: 1.15rem;
+    }
+
+</style>
+<body>
+    <div id="compare">
+        <h1> Antigo </h1>
+        <h1> Novo </h1>
+    </div>
+    <div class="result">
+
+    </div>
+</body>
+<script type="module">
+    import slugs from './slugs.js'
+
+    const main = document.getElementById('compare')
+    const result = document.querySelector('.result')
+    let needToRefactor = []
+
+    const addImageToNeedToRefactor = ({ target: image }) => {
+        if(image.classList.contains('checked')){
+            needToRefactor = needToRefactor.filter( images => images !== image.name)
+            image.classList.remove('checked')
+            return;
+        }
+        image.classList.add('checked')
+        needToRefactor.push(image.name)
+    }
+
+    const createImage = (folder) => (image) => {
+        const img = document.createElement('img')
+
+        img.src = `${folder}/${image}.svg`;
+        img.setAttribute('name', image);
+        img.onclick = addImageToNeedToRefactor
+        img.loading = "lazy"
+
+        return img;
+    }
+
+    const createButton = (name, clazz = "", fn) => {
+        const btn = document.createElement('button')
+
+        btn.innerHTML = name;
+        btn.classList.add(clazz)
+        btn.type = 'button'
+        btn.onclick = fn
+
+        return btn;
+    }
+
+    const getElementsWithColorNotApplied = () => {
+        const value = needToRefactor.join('\n')
+
+        if(result.lastChild.tagName === "TEXTAREA"){
+            result.lastChild.value = value;
+            return;
+        }
+
+        const textarea = document.createElement('textarea')
+        textarea.value = value;
+
+        result.appendChild(createButton('copiar', "copy", async function copyElements(){
+            await navigator.clipboard.writeText(textarea.value)
+        }))
+
+
+       result.insertAdjacentElement('beforeend', textarea)
+    }
+
+    const v1 = createImage('./courses/v1')
+    const v2 = createImage('./courses/v2')
+
+    slugs.forEach(slug => {
+        const actual = v1(slug)
+        const next = v2(slug);
+
+        main.insertAdjacentElement('beforeend', actual)
+        main.insertAdjacentElement('beforeend', next)
+
+    })
+
+    result.insertAdjacentElement('beforeend', createButton("Pegar imagens", "btn", getElementsWithColorNotApplied))
+
+</script>
+</html>
